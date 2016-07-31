@@ -1,0 +1,12 @@
+tr.active, .table-striped tr.active:nth-child(even) {
+	color: #fff;
+	background-color: #116cd6;
+}
+
+#addedit .window-content {
+	background-color: #F5F5F5;
+}
+
+#addedit .padded-more {
+	width: 100%;
+}

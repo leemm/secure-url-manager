@@ -1,0 +1,26 @@
+{
+  "name": "secureurlmanager",
+  "productName": "Secure URL Manager",
+  "homepage": "https://github.com/leemm/secure-url-manager",
+  "version": "0.0.1",
+  "description": "URL Manager for Mac OSX via Menubar",
+  "main": "index.js",
+  "dependencies": {
+    "fs-extra": "^0.30.0",
+    "lodash": "^4.14.0",
+    "nedb": "^1.8.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "url",
+    "manager",
+    "secure",
+    "mac",
+    "osx",
+    "menubar",
+    "browser"
+  ],
+  "scripts": {},
+  "author": "Lee M <leemmccormick@gmail.com> (https://github.com/leemm/)",
+  "license": "ISC"
+}
