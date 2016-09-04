@@ -10,3 +10,15 @@ tr.active, .table-striped tr.active:nth-child(even) {
 #addedit .padded-more {
 	width: 100%;
 }
+
+.inactive {
+	border-top-color: #D1D1D1;
+	border-right-color: #D1D1D1;
+	border-bottom-color: #D1D1D1;
+	background-color: #F0F0F0 !important;
+    background-image: none;
+}
+
+.inactive .icon {
+	color: #D1D1D1;
+}

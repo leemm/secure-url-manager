@@ -6,7 +6,7 @@ const { ipcRenderer } = require('electron'),
 	_ = require('lodash'),
 	querystring = require('querystring');
 
-let bookmarkId, categoryId;
+let categoryId;
 
 $( document ).ready(function() {
 
@@ -23,17 +23,9 @@ window.onunload = function(){ saveData(); }
 const loadData = () => {
 
 	const qs = querystring.parse(window.location.search.substring(1));
-
-	categoryId = qs && qs.category ? qs.category : null;
-
 	if (qs && qs.id){
 
-		bookmarkId = qs.id;
-		ipcRenderer.send('data', { _id: bookmarkId });
-
-	} else {
-
-		bookmarkId = null;
+		categoryId = qs.id;
 		ipcRenderer.send('data');
 
 	}
@@ -46,17 +38,13 @@ const loadData = () => {
 const saveData = () => {
 
 	let title = $('#title').val(),
-		url = $('#url').val(),
-		category = $('#category').val(),
 		body = {
-			title: title,
-			url: url,
-			category: category
+			title: title
 		};
 
-	if (bookmarkId){ body.bookmarkId = bookmarkId; }
+	if (categoryId){ body.categoryId = categoryId; }
 
-	ipcRenderer.send('save-url', body);
+	ipcRenderer.send('save-category', body);
 
 };
 
@@ -66,8 +54,7 @@ const saveData = () => {
 const render = categories => {
 
 	categories.map(category => {
-		const categoryActive = category._id == categoryId ? ' selected' : '';
-		$('#category').append(`<option value="${category._id}"${categoryActive}>${category.title}</option>`);
+		$('#category').append(`<option value="${category._id}">${category.title}</option>`);
 	});
 
 };
@@ -75,16 +62,13 @@ const render = categories => {
 ipcRenderer.on('on-data', (event, data) => {
 
 	categories = data[0];
-	urls = data[1];
 
 	render(categories);
 
-	const bookmark = urls.length > 0 && bookmarkId ? urls[0] : null;
-	if (bookmark){
+	const category = categories.length > 0 && categoryId ? _.find(categories, { _id: categoryId }) : null;
+	if (category){
 
-		$('#title').val(bookmark.title);
-		$('#url').val(bookmark.url);
-		$('#category').val(bookmark.category_id);
+		$('#title').val(category.title);
 
 	}
 

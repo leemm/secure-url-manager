@@ -15,7 +15,7 @@ const categoryMenu = element => {
     menu.append(new MenuItem({
         label: 'Add',
         click(){
-            ipcRenderer.send('add-edit');
+            ipcRenderer.send('add-edit-category');
         }
     }));
 
@@ -23,7 +23,7 @@ const categoryMenu = element => {
         label: 'Edit',
         enabled: overCategory,
         click(){
-            ipcRenderer.send('add-edit', id);
+            ipcRenderer.send('add-edit-category', id);
         }
     }));
 
@@ -31,8 +31,8 @@ const categoryMenu = element => {
         label: 'Delete',
         enabled: overCategory,
         click(){
-            if (confirm('Are you sure you want to delete this item?')){
-                console.log('Delete', id);
+            if (confirm('Are you sure you want to delete this category?')){
+                ipcRenderer.send('delete-category', { categoryId: id });
             }
         }
     }));
@@ -48,6 +48,13 @@ const categoryMenu = element => {
  */
 const urlMenu = element => {
 
+    // Category
+    const categoryElement = $('#category-list nav .nav-group-item.active');
+    categoryId = categoryElement.length > 0 ? categoryElement.attr('data-id') : null;
+
+    const selected = $('.bookmark.active');
+
+
     element = element.prop('tagName').toLowerCase() === 'td' ? element.parent() : element;
 
     const overCategory = element.hasClass('bookmark'),
@@ -57,15 +64,15 @@ const urlMenu = element => {
     menu.append(new MenuItem({
         label: 'Add',
         click(){
-            ipcRenderer.send('add-edit');
+            ipcRenderer.send('add-edit', { category: categoryId });
         }
     }));
 
     menu.append(new MenuItem({
         label: 'Edit',
-        enabled: overCategory,
+        enabled: overCategory && selected.length <= 1,
         click(){
-            ipcRenderer.send('add-edit', id);
+            ipcRenderer.send('add-edit', { id: id, category: categoryId });
         }
     }));
 
@@ -73,9 +80,26 @@ const urlMenu = element => {
         label: 'Delete',
         enabled: overCategory,
         click(){
-            if (confirm('Are you sure you want to delete this item?')){
-                console.log('Delete', id);
+
+            // If multiselect delete them all
+            if (selected.length > 1){
+
+                if (confirm('Are you sure you want to delete these bookmarks?')){
+
+                    let bookmarkIds = [];
+                    selected.each(function() {
+                        bookmarkIds.push($(this).attr('data-id'));
+                    });
+
+                    ipcRenderer.send('delete-url', bookmarkIds);
+                }
+
+            }else{
+                if (confirm('Are you sure you want to delete this bookmark?')){
+                    ipcRenderer.send('delete-url', { _id: id });
+                }
             }
+
         }
     }));
 
@@ -88,7 +112,7 @@ const urlMenu = element => {
  * @param  {Object} mousePosition
  * @return {String}
  */
-const findContainer = (mousePosition) => {
+const findContainer = mousePosition => {
     let element = document.elementFromPoint(mousePosition.x, mousePosition.y);
     return $(element).closest('[id]').attr('id');
 }
@@ -98,7 +122,7 @@ const findContainer = (mousePosition) => {
  * @param  {Object} mousePosition
  * @return {Object} jQuery Element
  */
-const findElement = (mousePosition) => {
+const findElement = mousePosition => {
     let element = document.elementFromPoint(mousePosition.x, mousePosition.y);
     return $(element);
 }

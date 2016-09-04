@@ -1,31 +1,30 @@
 'use strict';
 
 const electron = require('electron'),
-    { BrowserWindow } = electron,
-    querystring = require('querystring');
+    { BrowserWindow } = electron;
 
-class AddEdit {
+class Category {
 
     /**
      * Main URL Manager window
      */
     constructor() {}
 
-    show(qs) {
+    show(id) {
 
-        qs = qs ? '?' + querystring.stringify(qs) : '';
+        id = id ? '?id=' + id : '';
 
         let windowOpts = {
             'show': false,
             'width': 500,
-            'height': 280,
+            'height': 150,
             'accept-first-mouse': true,
             'title-bar-style': 'hidden'
         };
 
         this._win = new BrowserWindow(windowOpts);
 
-        this._win.loadURL(`file://${__dirname}/addedit.html${qs}`);
+        this._win.loadURL(`file://${__dirname}/category.html${id}`);
 
         this._win.on('ready-to-show', () => {
             this._win.show();
@@ -36,4 +35,4 @@ class AddEdit {
 
 }
 
-module.exports = AddEdit;
+module.exports = Category;

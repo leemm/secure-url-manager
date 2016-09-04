@@ -35,9 +35,15 @@ class Manager {
 
     }
 
-    reload() {
+    reload(isCategory) {
 
-        this._win.webContents.send('reload');
+        this._win.webContents.send('reload', isCategory);
+
+    }
+
+    toolbarStatus(count) {
+
+        this._win.webContents.send('toolbarStatus', count);
 
     }
 

@@ -10,10 +10,79 @@ let categories = [], urls = [], selectedCategoryId;
 $( document ).ready(() => {
 
 	loadData();
+	bindToolbar();
 
 });
 
-let selected = [];
+const monitor = {
+	get: function(target, property) {
+		return target[property];
+	},
+	set: function(target, property, value, receiver) {
+		console.log(target);
+		console.log(property);
+		console.log(value);
+
+		target[property] = value;
+
+		return true;
+	}
+}
+
+let selected = new Proxy([], monitor);
+
+/**
+ * Bind toolbar buttons
+ */
+const bindToolbar = () => {
+
+	$('#button-add').click(ev => {
+		ev.preventDefault();
+		ipcRenderer.send('add-edit', { category: selectedCategoryId });
+	});
+
+	$('#button-edit').addClass('inactive').click(function(ev) {
+		ev.preventDefault();
+
+		if (!$(this).hasClass('inactive')){
+			ipcRenderer.send('add-edit', { id: selected[0], category: selectedCategoryId });
+		}
+	});
+
+	$('#button-delete').addClass('inactive').click(function(ev) {
+		ev.preventDefault();
+
+		if (!$(this).hasClass('inactive')){
+
+			// If multiselect delete them all
+            if (selected.length > 1){
+
+                if (confirm('Are you sure you want to delete these bookmarks?')){
+                    ipcRenderer.send('delete-url', selected);
+                }
+
+            }else{
+                if (confirm('Are you sure you want to delete this bookmark?')){
+                    ipcRenderer.send('delete-url', { _id: selected[0] });
+                }
+            }
+
+		}
+	});
+
+	// Find filter box
+	$('#find').keyup(function(ev){
+		clear();
+
+		let searchElement = $(this),
+			filter = searchElement.val().length > 0 ? { title: searchElement.val(), url: searchElement.val() } : {}
+
+		selectedCategoryId = null;
+		clear(true);
+		loadData(filter);
+	});
+
+}
 
 /**
  * Query data from database
@@ -21,6 +90,15 @@ let selected = [];
 const loadData = filter => {
 
 	ipcRenderer.send('data', filter);
+
+}
+
+/**
+ * Toolbar turn edit and delete on
+ */
+const toolbarStatus = on => {
+
+	ipcRenderer.send('toolbarStatus', on);
 
 }
 
@@ -65,25 +143,40 @@ ipcRenderer.on('on-data', (event, data) => {
 	urls = data[1];
 
 	for (let idx = 0;idx < urls.length;idx ++){
-		urls[idx].category = _.find(categories, { _id: urls[idx].category_id }).title;
+		let thisCategory = _.find(categories, { _id: urls[idx].category_id });
+		urls[idx].category = thisCategory ? thisCategory.title : '';
 	}
 
 	render();
 
 });
 
-ipcRenderer.on('reload', (event) => {
+ipcRenderer.on('reload', (event, isCategory) => {
 
 	let filter = {};
 	if (selectedCategoryId){ filter.category_id = selectedCategoryId; }
 
-	clear();
+	clear(isCategory);
 	loadData(filter);
 
 });
 
+ipcRenderer.on('toolbarStatus', (event, count) => {
+
+	let edit = $('#button-edit'),
+		del = $('#button-delete');
+
+	edit.addClass('inactive');
+	del.addClass('inactive');
+
+	if (count === 1){ edit.removeClass('inactive'); }
+	if (count >= 1){ del.removeClass('inactive'); }
+
+});
+
 ipcRenderer.on('on-error', (event, err) => {
-	console.error('err', err);
+	console.log('error detected');
+	console.error(err);
 	alert('There has been a fatal error loading your urls, please restart the application and try again.');
 });
 
@@ -120,7 +213,7 @@ const bind = () => {
 	});
 
 	// URL List
-	$('#url-list tbody tr').click(function(e) {
+	$('#url-list tbody tr').unbind().click(function(e) {
 		e.preventDefault();
 
 		let id = $(this).attr('data-id');
@@ -148,6 +241,7 @@ const bind = () => {
 		}
 
 		setURLStatus();
+		toolbarStatus(selected.length);
 
 	}).dblclick(function(e) {
 		e.preventDefault();
